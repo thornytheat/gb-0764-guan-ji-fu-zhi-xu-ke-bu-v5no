@@ -27,5 +27,8 @@
 | TRAP-19 | 专属和公开同日适用 | 高修订公开版覆盖专属 | 先比较授权范围 | `app/licenses/terms.py` | `tests/test_licenses.py::test_special_beats_public_high_revision` |
 | TRAP-23 | 请求在截止日 | 到期条款多算一天 | 左闭右开 | `app/licenses/terms.py` | `tests/test_licenses.py::test_closed_at_valid_until` |
 | TRAP-25 | 两版时间重叠 | 按列表顺序选版 | 高修订优先，同级冲突待证 | `app/licenses/decide.py` | `tests/test_licenses.py::test_overlapping_versions_and_tie` |
+| TRAP-31 | 同组多单申请页重叠 | 逐单扣页拒掉可共用页，或按池合印让异条款申请共授权 | 按年度/馆/刊/条款分组合印，并集扣页、重叠页各单均记获准 | `app/pagination/ledger.py` `app/pagination/spans.py` | `tests/test_pages.py::test_shared_page_is_granted_to_every_order_without_double_debit` |
+| TRAP-32 | 撤销一单而别单仍用同页 | 立即全额返还，别单获准页失去额度依据 | 引用计数退页，最后一单撤销才释放实印页 | `app/pagination/ledger.py` | `tests/test_pages.py::test_cancel_of_last_order_releases_whole_union` |
+| TRAP-33 | 落印请求重试 | 重复扣页或凭证摘要漂移 | 卷号幂等落印，重试取回原凭证 | `app/certificate/slip.py` | `tests/test_certificate.py::test_retry_stamp_never_charges_pages_twice` |
 
-58 申请页 = 32 许可页 + 18 拒绝页 + 8 待证页。C01 已许可 6 页，R01 归还 6 页，因此有效占用 26 页。申请页计在订单内部去重，各不同订单独立计数。
+58 申请页 = 32 许可页 + 18 拒绝页 + 8 待证页。许可页按订单计数、跨单可重复；额度池只按合印并集扣页，全卷有效合印 26 页。C01 获准 6 页，R01 撤销时其获准段与组内并集重叠 1 页（第 8 页 C02 仍获准），先留组不退，实际返还 5 页；NORTH 池并集仍占满 10 页。申请页在订单内部去重，合印并集在组内跨单去重。

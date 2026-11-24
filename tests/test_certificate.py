@@ -30,11 +30,24 @@ def test_unknown_archive(client):
     assert (result.status_code,result.json['error'])==(404,'RUN_UNKNOWN')
 
 
+def test_retry_stamp_never_charges_pages_twice(client):
+    address=path(client)
+    first=client.post(address+'/stamp').json
+    second=client.post(address+'/stamp').json
+    assert second==dict(first,reused=True)
+    doc=client.get(address+'/export').json['document']
+    # 凭证中的合印并集与额度占用在重试后保持不变，没有二次扣页
+    assert sum(g['printed_pages'] for g in doc['print_groups'])==doc['accounting']['effective']
+    assert {k:v['used'] for k,v in doc['accounting']['accounts'].items()}=={
+        '2026/COLL':5,'2026/NET':8,'2026/NORTH':10,'2026/OPEN':3}
+
+
 def test_evidence_contains_old_orders_and_reversals(client):
     address=path(client)
     client.post(address+'/stamp')
     doc=client.get(address+'/export').json['document']
-    assert doc['requests'][0]['licensed']==6 and doc['revocations'][0]['restored']==6
+    assert doc['requests'][0]['licensed']==6 and doc['revocations'][0]['restored']==5
+    assert doc['revocations'][0]['shared_kept']==1
     assert len(doc['isolated'])==5
 
 

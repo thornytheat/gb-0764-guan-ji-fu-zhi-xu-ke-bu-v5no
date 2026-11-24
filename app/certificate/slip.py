@@ -10,6 +10,7 @@ def stamp(vault, run):
     stages = report['stages']
     document = {'document':'馆际复制签发凭证','manifest':report['manifest'],
                 'accounting':stages['balance'],'requests':stages['pages']['copies'],
+                'print_groups':stages['pages']['print_groups'],
                 'revocations':stages['pages']['reversals'],'isolated':stages['intake']['exceptions'],
                 'suppressions':stages['intake']['duplicates'],'resolutions':stages['licenses']['verdicts']}
     body = encode(document)
